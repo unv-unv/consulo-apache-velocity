@@ -16,6 +16,7 @@
 package com.intellij.velocity.psi.files;
 
 import com.intellij.velocity.psi.VtlLanguage;
+import consulo.html.language.HTMLLanguage;
 import consulo.language.Language;
 import consulo.language.file.FileTypeManager;
 import consulo.language.file.LanguageFileType;
@@ -32,7 +33,6 @@ import consulo.language.template.TemplateLanguage;
 import consulo.project.Project;
 import consulo.virtualFileSystem.VirtualFile;
 import consulo.virtualFileSystem.fileType.FileType;
-import consulo.xml.lang.html.HTMLLanguage;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;

@@ -7,6 +7,7 @@ module com.intellij.velocity
     requires consulo.ide.api;
     requires consulo.java;
     requires com.intellij.xml;
+    requires com.intellij.xml.html.api;
     requires com.intellij.properties;
 
     exports com.intellij.velocity;
