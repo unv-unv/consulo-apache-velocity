@@ -20,6 +20,7 @@ import static com.intellij.velocity.psi.VtlExpressionTypeCalculator.MINUS_CALCUL
 import static com.intellij.velocity.psi.VtlExpressionTypeCalculator.MULTIPLICATIVE_CALCULATOR;
 import static com.intellij.velocity.psi.VtlExpressionTypeCalculator.PLUS_CALCULATOR;
 
+import consulo.language.ast.StandardTokenTypes;
 import consulo.language.ast.TokenType;
 import consulo.language.parser.PsiBuilder;
 import consulo.language.ast.IElementType;
@@ -30,7 +31,7 @@ import com.intellij.velocity.psi.parsers.*;
 /**
  * @author Alexey Chmutov
  */
-public interface VtlElementTypes extends TokenType, VtlCompositeElementTypes {
+public interface VtlElementTypes extends StandardTokenTypes, VtlCompositeElementTypes {
 
     consulo.language.ast.IElementType DOLLAR = new IElementType("DOLLAR", VtlLanguage.INSTANCE);
     consulo.language.ast.IElementType SHARP = new IElementType("SHARP", VtlLanguage.INSTANCE);
