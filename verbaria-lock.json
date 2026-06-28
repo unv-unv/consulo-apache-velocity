@@ -1,0 +1,15 @@
+{
+  "lockVersion" : 1,
+  "project" : "consulo-apache-velocity",
+  "projectVersion" : "master",
+  "sourceLocale" : "en-US",
+  "generatedAt" : "2026-06-28T16:05:50.974971780Z",
+  "documents" : {
+    "consulo.apache.velocity.VelocityLocalize" : {
+      "source" : {
+        "revision" : 1,
+        "sig" : "74df0a619d6f5983c7f63f8e03a95dbb"
+      }
+    }
+  }
+}
