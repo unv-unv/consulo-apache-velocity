@@ -15,27 +15,22 @@
  */
 package com.intellij.velocity.psi.parsers;
 
-import static com.intellij.velocity.psi.VtlElementTypes.*;
-import static com.intellij.velocity.psi.parsers.CompositeBodyParser.CompositeEndDetector;
-import static com.intellij.velocity.psi.parsers.CompositeBodyParser.assertToken;
-import static com.intellij.velocity.psi.parsers.CompositeBodyParser.consumeTokenIfPresent;
-import static com.intellij.velocity.psi.parsers.CompositeBodyParser.noForeachStarted;
-
-import jakarta.annotation.Nonnull;
-
-import consulo.language.parser.PsiBuilder;
-import consulo.language.ast.IElementType;
-import com.intellij.velocity.VelocityBundle;
 import com.intellij.velocity.psi.VtlCompositeStarterTokenType;
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.ast.ASTNode;
+import consulo.language.ast.IElementType;
+import consulo.language.parser.PsiBuilder;
 import consulo.language.parser.PsiParser;
 import consulo.language.version.LanguageVersion;
+import jakarta.annotation.Nonnull;
+
+import static com.intellij.velocity.psi.VtlElementTypes.*;
+import static com.intellij.velocity.psi.parsers.CompositeBodyParser.*;
 
 /**
  * @author Alexey Chmutov
  */
-public class VtlParser implements PsiParser
-{
+public class VtlParser implements PsiParser {
 
     private static final CompositeEndDetector EOF_DETECTOR = new CompositeEndDetector() {
         @Override
@@ -52,8 +47,9 @@ public class VtlParser implements PsiParser
     };
 
     @Nonnull
+    @Override
     public ASTNode parse(IElementType root, PsiBuilder builder, LanguageVersion languageVersion) {
-        final PsiBuilder.Marker rootMarker = builder.mark();
+        PsiBuilder.Marker rootMarker = builder.mark();
         parseCompositeElements(builder, EOF_DETECTOR);
         rootMarker.done(root);
         return builder.getTreeBuilt();
@@ -63,13 +59,15 @@ public class VtlParser implements PsiParser
         while (!detector.isCompositeFinished(builder) && !builder.eof()) {
             consulo.language.ast.IElementType currentTokenType = builder.getTokenType();
             if (detector.isTokenInvalid(currentTokenType)) {
-                builder.error(VelocityBundle.message("invalid.token", builder.getTokenText()));
-            } else if (currentTokenType == SHARP_BREAK && noForeachStarted(builder)) {
-                builder.error(VelocityBundle.message("vtl.break.should.be.within.foreach"));
+                builder.error(VelocityLocalize.invalidToken(builder.getTokenText()));
             }
-            if (currentTokenType instanceof VtlCompositeStarterTokenType) {
-                parseComposite(builder, (VtlCompositeStarterTokenType) builder.getTokenType());
-            } else {
+            else if (currentTokenType == SHARP_BREAK && noForeachStarted(builder)) {
+                builder.error(VelocityLocalize.vtlBreakShouldBeWithinForeach());
+            }
+            if (currentTokenType instanceof VtlCompositeStarterTokenType compositeStarterTokenType) {
+                parseComposite(builder, compositeStarterTokenType);
+            }
+            else {
                 builder.advanceLexer();
             }
         }
@@ -87,8 +85,9 @@ public class VtlParser implements PsiParser
         while (!handler.isListFinished(builder) && !builder.eof()) {
             if (firstElement) {
                 firstElement = false;
-            } else if (!handler.parseSeparator(builder) && requireSeparator) {
-                builder.error(VelocityBundle.message("token.expected", COMMA));
+            }
+            else if (!handler.parseSeparator(builder) && requireSeparator) {
+                builder.error(VelocityLocalize.tokenExpected(COMMA));
             }
             handler.parseListElement(builder);
         }
@@ -98,8 +97,7 @@ public class VtlParser implements PsiParser
 //        System.out.println("Type: " + builder.getTokenType() + " TokenText: " + builder.getTokenText());
 //    }
 
-    static boolean parseBinaryExpression(final PsiBuilder builder) {
-
+    static boolean parseBinaryExpression(PsiBuilder builder) {
         PsiBuilder.Marker expr = builder.mark();
         if (!parseRelationalExpression(builder)) {
             expr.drop();
@@ -108,7 +106,7 @@ public class VtlParser implements PsiParser
         while (LOGICAL_OPERATIONS.contains(builder.getTokenType())) {
             builder.advanceLexer();
             if (!parseRelationalExpression(builder)) {
-                builder.error(VelocityBundle.message("expression.expected"));
+                builder.error(VelocityLocalize.expressionExpected());
             }
             expr.done(BINARY_EXPRESSION);
             expr = expr.precede();
@@ -117,8 +115,7 @@ public class VtlParser implements PsiParser
         return true;
     }
 
-    private static boolean parseRelationalExpression(final PsiBuilder builder) {
-
+    private static boolean parseRelationalExpression(PsiBuilder builder) {
         PsiBuilder.Marker expr = builder.mark();
         if (!parseAdditiveExpression(builder)) {
             expr.drop();
@@ -127,7 +124,7 @@ public class VtlParser implements PsiParser
         while (RELATIONAL_OPERATIONS.contains(builder.getTokenType())) {
             builder.advanceLexer();
             if (!parseAdditiveExpression(builder)) {
-                builder.error(VelocityBundle.message("expression.expected"));
+                builder.error(VelocityLocalize.expressionExpected());
             }
             expr.done(BINARY_EXPRESSION);
             expr = expr.precede();
@@ -136,7 +133,7 @@ public class VtlParser implements PsiParser
         return true;
     }
 
-    private static boolean parseAdditiveExpression(final PsiBuilder builder) {
+    private static boolean parseAdditiveExpression(PsiBuilder builder) {
         PsiBuilder.Marker expr = builder.mark();
         if (!parseMultiplicativeExpression(builder)) {
             expr.drop();
@@ -145,7 +142,7 @@ public class VtlParser implements PsiParser
         while (ADDITIVE_OPERATIONS.contains(builder.getTokenType())) {
             builder.advanceLexer();
             if (!parseMultiplicativeExpression(builder)) {
-                builder.error(VelocityBundle.message("expression.expected"));
+                builder.error(VelocityLocalize.expressionExpected());
             }
             expr.done(BINARY_EXPRESSION);
             expr = expr.precede();
@@ -154,7 +151,7 @@ public class VtlParser implements PsiParser
         return true;
     }
 
-    private static boolean parseMultiplicativeExpression(final PsiBuilder builder) {
+    private static boolean parseMultiplicativeExpression(PsiBuilder builder) {
         PsiBuilder.Marker expr = builder.mark();
         if (!parseUnaryExpression(builder)) {
             expr.drop();
@@ -163,7 +160,7 @@ public class VtlParser implements PsiParser
         while (MULTIPLICATIVE_OPERATIONS.contains(builder.getTokenType())) {
             builder.advanceLexer();
             if (!parseUnaryExpression(builder)) {
-                builder.error(VelocityBundle.message("expression.expected"));
+                builder.error(VelocityLocalize.expressionExpected());
             }
             expr.done(BINARY_EXPRESSION);
             expr = expr.precede();
@@ -172,60 +169,70 @@ public class VtlParser implements PsiParser
         return true;
     }
 
-    private static boolean parseUnaryExpression(final PsiBuilder builder) {
-        final consulo.language.ast.IElementType tokenType = builder.getTokenType();
+    private static boolean parseUnaryExpression(PsiBuilder builder) {
+        consulo.language.ast.IElementType tokenType = builder.getTokenType();
         if (UNARY_OPERATIONS.contains(tokenType)) {
-            final PsiBuilder.Marker expr = builder.mark();
+            PsiBuilder.Marker expr = builder.mark();
             builder.advanceLexer();
             if (!parseUnaryExpression(builder)) {
-                builder.error(VelocityBundle.message("expression.expected"));
+                builder.error(VelocityLocalize.expressionExpected());
             }
             expr.done(UNARY_EXPRESSION);
             return true;
-        } else {
+        }
+        else {
             return parseOperand(builder, true);
         }
     }
 
     static boolean parseOperand(PsiBuilder builder, boolean allowParenthesized) {
         PsiBuilder.Marker expression = builder.mark();
-        final consulo.language.ast.IElementType elementStarter = builder.getTokenType();
+        consulo.language.ast.IElementType elementStarter = builder.getTokenType();
         builder.advanceLexer();
 
         if (elementStarter == INTEGER) {
             expression.done(INTEGER_LITERAL);
-        } else if (elementStarter == DOUBLE) {
+        }
+        else if (elementStarter == DOUBLE) {
             expression.done(DOUBLE_LITERAL);
-        } else if (elementStarter == BOOLEAN) {
+        }
+        else if (elementStarter == BOOLEAN) {
             expression.done(BOOLEAN_LITERAL);
-        } else if (elementStarter == SINGLE_QUOTE) {
+        }
+        else if (elementStarter == SINGLE_QUOTE) {
             consumeTokenIfPresent(builder, STRING_TEXT);
             assertToken(builder, SINGLE_QUOTE);
             expression.done(STRING_LITERAL);
-        } else if (elementStarter == DOUBLE_QUOTE) {
-            if(!consumeTokenIfPresent(builder, STRING_TEXT)) {
+        }
+        else if (elementStarter == DOUBLE_QUOTE) {
+            if (!consumeTokenIfPresent(builder, STRING_TEXT)) {
                 parseCompositeElements(builder, DOUBLE_QUOTE_DETECTOR);
             }
             assertToken(builder, DOUBLE_QUOTE);
             expression.done(DOUBLEQUOTED_TEXT);
-        } else if (elementStarter == START_REFERENCE || elementStarter == START_REF_FORMAL) {
+        }
+        else if (elementStarter == START_REFERENCE || elementStarter == START_REF_FORMAL) {
             CompositeBodyParser parser = ((VtlCompositeStarterTokenType) elementStarter).getCompositeBodyParser();
             parser.parseBody(builder, expression);
-        } else if (elementStarter == LEFT_BRACKET) {
+        }
+        else if (elementStarter == LEFT_BRACKET) {
             parseList(builder, ListHandler.LIST_HANDLER, true);
             assertToken(builder, RIGHT_BRACKET);
             expression.done(LIST_EXPRESSION);
-        } else if (allowParenthesized && elementStarter == LEFT_PAREN) {
+        }
+        else if (allowParenthesized && elementStarter == LEFT_PAREN) {
             parseBinaryExpression(builder);
             assertToken(builder, RIGHT_PAREN);
             expression.done(PARENTHESIZED_EXPRESSION);
-        } else if (elementStarter == LEFT_BRACE_IN_EXPR) {
+        }
+        else if (elementStarter == LEFT_BRACE_IN_EXPR) {
             parseList(builder, ListHandler.MAP_HANDLER, true);
             assertToken(builder, RIGHT_BRACE_IN_EXPR);
             expression.done(MAP_EXPRESSION);
-        } else {
+        }
+        else {
             expression.drop();
-            builder.error(VelocityBundle.message("operand.expected"));
+            builder.error(VelocityLocalize.operandExpected());
             return false;
         }
         return true;

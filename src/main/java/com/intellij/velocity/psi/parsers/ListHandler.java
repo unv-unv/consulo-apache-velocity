@@ -13,35 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intellij.velocity.psi.parsers;
+
+import com.intellij.velocity.psi.VtlElementTypes;
+import com.intellij.velocity.psi.VtlTokenType;
+import consulo.apache.velocity.localize.VelocityLocalize;
+import consulo.language.ast.IElementType;
+import consulo.language.parser.PsiBuilder;
+import jakarta.annotation.Nonnull;
 
 import static com.intellij.velocity.psi.VtlCompositeElementTypes.PARAMETER;
 import static com.intellij.velocity.psi.VtlCompositeElementTypes.RANGE_EXPRESSION;
-import static com.intellij.velocity.psi.VtlElementTypes.COLON;
-import static com.intellij.velocity.psi.VtlElementTypes.IDENTIFIER;
-import static com.intellij.velocity.psi.VtlElementTypes.RANGE;
-import static com.intellij.velocity.psi.VtlElementTypes.RIGHT_BRACE;
-import static com.intellij.velocity.psi.VtlElementTypes.RIGHT_BRACE_IN_EXPR;
-import static com.intellij.velocity.psi.VtlElementTypes.RIGHT_BRACKET;
-import static com.intellij.velocity.psi.VtlElementTypes.RIGHT_PAREN;
-import static com.intellij.velocity.psi.VtlElementTypes.START_REFERENCE;
-import static com.intellij.velocity.psi.VtlElementTypes.START_REF_FORMAL;
+import static com.intellij.velocity.psi.VtlElementTypes.*;
 import static com.intellij.velocity.psi.parsers.CompositeBodyParser.assertToken;
 import static com.intellij.velocity.psi.parsers.CompositeBodyParser.consumeTokenIfPresent;
 
-import jakarta.annotation.Nonnull;
-import consulo.language.parser.PsiBuilder;
-import consulo.language.ast.IElementType;
-import com.intellij.velocity.VelocityBundle;
-import com.intellij.velocity.psi.VtlElementTypes;
-import com.intellij.velocity.psi.VtlTokenType;
-
 /**
- * Created by IntelliJ IDEA.
-* User: Alexey Chmutov
-* Date: 02.07.2008
-*/
+ * @author Alexey Chmutov
+ * @since 2008-07-02
+ */
 class ListHandler {
     private final IElementType myTerminator;
 
@@ -66,10 +56,10 @@ class ListHandler {
     static final ListHandler MAP_HANDLER = new ListHandler(RIGHT_BRACE_IN_EXPR) {
         @Override
         public boolean parseListElement(PsiBuilder builder) {
-            if(!super.parseListElement(builder)) {
+            if (!super.parseListElement(builder)) {
                 return false;
             }
-            if(assertToken(builder, COLON)) {
+            if (assertToken(builder, COLON)) {
                 super.parseListElement(builder);
             }
             return true;
@@ -96,11 +86,11 @@ class ListHandler {
         @Override
         public boolean parseListElement(PsiBuilder builder) {
             PsiBuilder.Marker elementMarker = builder.mark();
-            final IElementType elementStarter = builder.getTokenType();
+            IElementType elementStarter = builder.getTokenType();
             builder.advanceLexer();
 
             if (elementStarter != START_REFERENCE && elementStarter != START_REF_FORMAL) {
-                elementMarker.error(VelocityBundle.message("parameter.expected"));
+                elementMarker.error(VelocityLocalize.parameterExpected());
                 return false;
             }
             assertToken(builder, IDENTIFIER);
@@ -111,5 +101,4 @@ class ListHandler {
             return true;
         }
     };
-
 }

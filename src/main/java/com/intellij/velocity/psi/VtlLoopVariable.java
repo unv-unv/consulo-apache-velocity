@@ -17,7 +17,8 @@ package com.intellij.velocity.psi;
 
 import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.util.TypeConversionUtil;
-import com.intellij.velocity.VelocityBundle;
+import consulo.annotation.access.RequiredReadAction;
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.ast.ASTNode;
 import consulo.language.psi.PsiElement;
 import consulo.language.psi.scope.GlobalSearchScope;
@@ -27,96 +28,83 @@ import jakarta.annotation.Nullable;
 /**
  * @author Alexey Chmutov
  */
-public class VtlLoopVariable extends VtlPresentableNamedElement implements VtlVariable
-{
-	public VtlLoopVariable(final ASTNode node)
-	{
-		super(node);
-	}
+public class VtlLoopVariable extends VtlPresentableNamedElement implements VtlVariable {
+    public VtlLoopVariable(ASTNode node) {
+        super(node);
+    }
 
-	public String getTypeName()
-	{
-		return VelocityBundle.message("type.name.loop.variable");
-	}
+    @Override
+    public String getTypeName() {
+        return VelocityLocalize.typeNameLoopVariable().get();
+    }
 
-	public PsiType getPsiType()
-	{
-		return extractTypeFromIterable(getIterableExpression());
-	}
+    @Override
+    @RequiredReadAction
+    public PsiType getPsiType() {
+        return extractTypeFromIterable(getIterableExpression());
+    }
 
-	@Nullable
-	public VtlExpression getIterableExpression()
-	{
-		PsiElement wouldBeIterable = getNextSibling();
-		while(wouldBeIterable != null)
-		{
-			if(wouldBeIterable instanceof VtlExpression)
-			{
-				return (VtlExpression) wouldBeIterable;
-			}
-			wouldBeIterable = wouldBeIterable.getNextSibling();
-		}
-		return null;
-	}
+    @Nullable
+    @RequiredReadAction
+    public VtlExpression getIterableExpression() {
+        PsiElement wouldBeIterable = getNextSibling();
+        while (wouldBeIterable != null) {
+            if (wouldBeIterable instanceof VtlExpression expression) {
+                return expression;
+            }
+            wouldBeIterable = wouldBeIterable.getNextSibling();
+        }
+        return null;
+    }
 
-	@Nullable
-	private static PsiType extractTypeFromIterable(VtlExpression expr)
-	{
-		if(expr == null)
-		{
-			return null;
-		}
-		PsiType type = expr.getPsiType();
-		if(type == null)
-		{
-			return null;
-		}
-		if(type instanceof PsiArrayType)
-		{
-			return ((PsiArrayType) type).getComponentType();
-		}
-		if(!(type instanceof PsiClassType))
-		{
-			return null;
-		}
-		PsiClassType classType = (PsiClassType) type;
-		PsiElementFactory factory = JavaPsiFacade.getInstance(expr.getProject()).getElementFactory();
-		GlobalSearchScope scope = expr.getResolveScope();
+    @Nullable
+    private static PsiType extractTypeFromIterable(VtlExpression expr) {
+        if (expr == null) {
+            return null;
+        }
+        PsiType type = expr.getPsiType();
+        if (type == null) {
+            return null;
+        }
+        if (type instanceof PsiArrayType arrayType) {
+            return arrayType.getComponentType();
+        }
+        if (!(type instanceof PsiClassType classType)) {
+            return null;
+        }
+        PsiElementFactory factory = JavaPsiFacade.getInstance(expr.getProject()).getElementFactory();
+        GlobalSearchScope scope = expr.getResolveScope();
 
-		for(Object[] iterable : VELOCITY_ITERABLES)
-		{
-			PsiClassType iterableClassType = factory.createTypeByFQClassName((String) iterable[0], scope);
-			if(!TypeConversionUtil.isAssignable(iterableClassType, classType))
-			{
-				continue;
-			}
-			final PsiClass iterableClass = iterableClassType.resolve();
-			if(iterableClass == null)
-			{
-				continue;
-			}
-			final PsiSubstitutor substitutor = PsiUtil.getSuperClassSubstitutor(iterableClass, classType);
-			PsiTypeParameter[] paremeters = iterableClass.getTypeParameters();
-			int paramIndex = ((Integer) iterable[1]).intValue();
-			PsiType result = paramIndex < paremeters.length ? substitutor.substitute(paremeters[paramIndex]) : null;
-			return result != null ? result : factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, scope);
-		}
-		return null;
-	}
+        for (Object[] iterable : VELOCITY_ITERABLES) {
+            PsiClassType iterableClassType = factory.createTypeByFQClassName((String) iterable[0], scope);
+            if (!TypeConversionUtil.isAssignable(iterableClassType, classType)) {
+                continue;
+            }
+            PsiClass iterableClass = iterableClassType.resolve();
+            if (iterableClass == null) {
+                continue;
+            }
+            PsiSubstitutor substitutor = PsiUtil.getSuperClassSubstitutor(iterableClass, classType);
+            PsiTypeParameter[] parameters = iterableClass.getTypeParameters();
+            int paramIndex = (Integer) iterable[1];
+            PsiType result = paramIndex < parameters.length ? substitutor.substitute(parameters[paramIndex]) : null;
+            return result != null ? result : factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, scope);
+        }
+        return null;
+    }
 
-	private static final Object[][] VELOCITY_ITERABLES = {
-			{CommonClassNames.JAVA_UTIL_ITERATOR, 0},
-			{CommonClassNames.JAVA_UTIL_COLLECTION, 0},
-			{CommonClassNames.JAVA_UTIL_MAP, 1}
-	};
+    private static final Object[][] VELOCITY_ITERABLES = {
+        {CommonClassNames.JAVA_UTIL_ITERATOR, 0},
+        {CommonClassNames.JAVA_UTIL_COLLECTION, 0},
+        {CommonClassNames.JAVA_UTIL_MAP, 1}
+    };
 
-	public static String[] getVelocityIterables(@Nonnull String className)
-	{
-		return new String[]{
-				"java.util.Iterator<" + className + ">",
-				"java.util.Collection<" + className + ">",
-				"java.util.Map<?, " + className + ">",
-				className + "[]",
-		};
-	}
+    public static String[] getVelocityIterables(@Nonnull String className) {
+        return new String[]{
+            "java.util.Iterator<" + className + ">",
+            "java.util.Collection<" + className + ">",
+            "java.util.Map<?, " + className + ">",
+            className + "[]",
+        };
+    }
 }

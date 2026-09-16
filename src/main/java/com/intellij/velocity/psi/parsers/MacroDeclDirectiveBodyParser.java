@@ -13,40 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intellij.velocity.psi.parsers;
 
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.parser.PsiBuilder;
+
 import static com.intellij.velocity.psi.VtlElementTypes.*;
-import com.intellij.velocity.VelocityBundle;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Alexey Chmutov
- * Date: 27.03.2008
+ * @author Alexey Chmutov
+ * @since 2008-03-27
  */
 public class MacroDeclDirectiveBodyParser extends CompositeBodyParser {
-
     public static final MacroDeclDirectiveBodyParser INSTANCE = new MacroDeclDirectiveBodyParser();
 
-    private MacroDeclDirectiveBodyParser() {}
+    private MacroDeclDirectiveBodyParser() {
+    }
 
+    @Override
     public void parseBody(PsiBuilder builder, PsiBuilder.Marker bodyMarker) {
         PsiBuilder.Marker directiveHeader = builder.mark();
-        if(assertToken(builder, LEFT_PAREN)) {
+        if (assertToken(builder, LEFT_PAREN)) {
             assertToken(builder, IDENTIFIER);
-            if(builder.getTokenType() != RIGHT_PAREN) {
+            if (builder.getTokenType() != RIGHT_PAREN) {
                 VtlParser.parseList(builder, ListHandler.PARAMETER_LIST_HANDLER, false);
                 assertToken(builder, RIGHT_PAREN);
-            } else {
+            }
+            else {
                 builder.advanceLexer();
             }
-        } else {
-            builder.error(VelocityBundle.message("macro.declaration.expected"));
+        }
+        else {
+            builder.error(VelocityLocalize.macroDeclarationExpected());
         }
         directiveHeader.done(DIR_HEADER);
         VtlParser.parseCompositeElements(builder, COMMON_END_DETECTOR);
         finishCompositeWithEnd(builder, bodyMarker, DIRECTIVE_MACRODECL);
     }
-    
 }

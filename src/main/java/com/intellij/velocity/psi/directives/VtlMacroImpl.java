@@ -15,13 +15,14 @@
  */
 package com.intellij.velocity.psi.directives;
 
+import consulo.annotation.access.RequiredReadAction;
+import consulo.apache.velocity.icon.VelocityIconGroup;
+import consulo.apache.velocity.localize.VelocityLocalize;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
 import consulo.document.util.TextRange;
 import consulo.language.psi.PsiElement;
-import com.intellij.velocity.VelocityBundle;
-import com.intellij.velocity.VtlIcons;
 import com.intellij.velocity.psi.VtlElementTypes;
 import com.intellij.velocity.psi.VtlMacro;
 import com.intellij.velocity.psi.VtlParameterDeclaration;
@@ -36,17 +37,21 @@ import consulo.ui.image.Image;
  * @author Alexey Chmutov
  */
 public class VtlMacroImpl extends VtlPresentableNamedElement implements VtlDirective, VtlMacro {
-
-    public VtlMacroImpl(@Nonnull final ASTNode node) {
+    public VtlMacroImpl(@Nonnull ASTNode node) {
         super(node);
     }
 
-    public boolean processDeclarations(@Nonnull final PsiScopeProcessor processor, @Nonnull final ResolveState state, final PsiElement lastParent,
-									   @Nonnull final PsiElement place) {
+    @Override
+    public boolean processDeclarations(
+        @Nonnull PsiScopeProcessor processor,
+        @Nonnull ResolveState state,
+        PsiElement lastParent,
+        @Nonnull PsiElement place
+    ) {
         if (!super.processDeclarations(processor, state, lastParent, place)) {
             return false;
         }
-        for (final VtlVariable declaration : getParameters()) {
+        for (VtlVariable declaration : getParameters()) {
             if (!processor.execute(declaration, state)) {
                 return false;
             }
@@ -55,47 +60,59 @@ public class VtlMacroImpl extends VtlPresentableNamedElement implements VtlDirec
     }
 
     @Nullable
+    @Override
     protected PsiElement getNameElement() {
         return findHeaderOfDirective().findChildByType(VtlElementTypes.IDENTIFIER);
     }
 
     @Nullable
+    @RequiredReadAction
     public TextRange getNameElementRange() {
         PsiElement nameElement = getNameElement();
         return nameElement == null ? null : nameElement.getTextRange();
     }
 
     @Nonnull
+    @Override
     public String getPresentableName() {
         return "macro '" + getName() + "'";
     }
 
     @Nonnull
+    @Override
     public VtlParameterDeclaration[] getParameters() {
         return findHeaderOfDirective().findChildrenByClass(VtlParameterDeclaration.class);
     }
 
+    @Override
     public boolean isDeprecated() {
         return false;
     }
 
+    @Override
+    @RequiredReadAction
     public int getFoldingStartOffset() {
         return getNode().getTextRange().getStartOffset() + "#macro".length();
     }
 
+    @Override
+    @RequiredReadAction
     public int getFoldingEndOffset() {
         return getNode().getTextRange().getEndOffset() - "#end".length();
     }
 
+    @Override
     public boolean needsClosing() {
         return true;
     }
 
+    @Override
     public String getTypeName() {
-        return VelocityBundle.message("type.name.macro");
+        return VelocityLocalize.typeNameMacro().get();
     }
 
+    @Override
     public Image getIcon() {
-        return VtlIcons.SHARP_ICON;
+        return VelocityIconGroup.sharp();
     }
 }

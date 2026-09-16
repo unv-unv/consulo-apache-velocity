@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intellij.velocity;
 
 import consulo.annotation.DeprecationInfo;
@@ -21,9 +20,8 @@ import consulo.apache.velocity.icon.VelocityIconGroup;
 import consulo.ui.image.Image;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Alexey Chmutov
- * Date: 22.05.2008
+ * @author Alexey Chmutov
+ * @since 2008-05-22
  */
 @Deprecated
 @DeprecationInfo("Use VelocityIconGroup")

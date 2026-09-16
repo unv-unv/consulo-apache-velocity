@@ -16,25 +16,25 @@
 package com.intellij.velocity.psi;
 
 import com.intellij.java.language.psi.PsiType;
-import com.intellij.velocity.VelocityBundle;
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.ast.ASTNode;
-
 import jakarta.annotation.Nullable;
 
 /**
  * @author Alexey Chmutov
  */
 public class VtlParameterDeclaration extends VtlPresentableNamedElement implements VtlVariable {
-
-    public VtlParameterDeclaration(final ASTNode node) {
+    public VtlParameterDeclaration(ASTNode node) {
         super(node);
     }
 
+    @Override
     public String getTypeName() {
-        return VelocityBundle.message("type.name.macro.parameter");
+        return VelocityLocalize.typeNameMacroParameter().get();
     }
 
     @Nullable
+    @Override
     public PsiType getPsiType() {
         return null;
     }

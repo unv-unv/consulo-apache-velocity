@@ -18,11 +18,12 @@ package com.intellij.velocity.psi.directives;
 import com.intellij.java.language.psi.CommonClassNames;
 import com.intellij.java.language.psi.JavaPsiFacade;
 import com.intellij.java.language.psi.PsiType;
-import com.intellij.velocity.VelocityBundle;
 import com.intellij.velocity.psi.PsiUtil;
 import com.intellij.velocity.psi.VtlCompositeElementTypes;
 import com.intellij.velocity.psi.VtlDirectiveHeader;
 import com.intellij.velocity.psi.VtlVariable;
+import consulo.annotation.access.RequiredReadAction;
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.ast.ASTNode;
 import consulo.language.icon.IconDescriptorUpdaters;
 import consulo.language.impl.psi.RenameableFakePsiElement;
@@ -35,136 +36,114 @@ import consulo.language.util.IncorrectOperationException;
 import consulo.ui.image.Image;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import org.jetbrains.annotations.NonNls;
 
 import java.util.Collection;
 
-
 /**
- * @author : Alexey Chmutov
+ * @author Alexey Chmutov
  */
-public class VtlForeach extends VtlDirectiveImpl
-{
-	private FixedNameReferenceElement velocityCountElement = null;
-	private FixedNameReferenceElement velocityHasNextElement = null;
+public class VtlForeach extends VtlDirectiveImpl {
+    private FixedNameReferenceElement velocityCountElement = null;
+    private FixedNameReferenceElement velocityHasNextElement = null;
 
-	public VtlForeach(ASTNode node)
-	{
-		super(node, "foreach", true);
-	}
+    public VtlForeach(ASTNode node) {
+        super(node, "foreach", true);
+    }
 
-	@Override
-	public boolean processDeclarations(
-			@Nonnull final PsiScopeProcessor processor,
-			@Nonnull final ResolveState state,
-			final consulo.language.psi.PsiElement lastParent,
-			@Nonnull final PsiElement place)
-	{
-		final VtlDirectiveHeader header = findHeaderOfDirective();
-		consulo.language.psi.PsiElement ancestorOfPlace = place.getParent();
-		while(ancestorOfPlace != null && ancestorOfPlace != this)
-		{
-			if(ancestorOfPlace == header)
-			{
-				return true;
-			}
-			ancestorOfPlace = ancestorOfPlace.getParent();
-		}
-		if(lastParent != getVelocityCountElement() && !processor.execute(getVelocityCountElement(), state))
-		{
-			return false;
-		}
-		if(lastParent != getVelocityHasNextElement() && !processor.execute(getVelocityHasNextElement(), state))
-		{
-			return false;
-		}
-		PsiElement loopVariable = header.findChildByType(VtlCompositeElementTypes.LOOP_VARIABLE);
-		if(loopVariable != null && lastParent != loopVariable && !processor.execute(loopVariable, state))
-		{
-			return false;
-		}
-		return super.processDeclarations(processor, state, lastParent, place);
-	}
+    @Override
+    public boolean processDeclarations(
+        @Nonnull PsiScopeProcessor processor,
+        @Nonnull ResolveState state,
+        consulo.language.psi.PsiElement lastParent,
+        @Nonnull PsiElement place
+    ) {
+        VtlDirectiveHeader header = findHeaderOfDirective();
+        consulo.language.psi.PsiElement ancestorOfPlace = place.getParent();
+        while (ancestorOfPlace != null && ancestorOfPlace != this) {
+            if (ancestorOfPlace == header) {
+                return true;
+            }
+            ancestorOfPlace = ancestorOfPlace.getParent();
+        }
+        if (lastParent != getVelocityCountElement() && !processor.execute(getVelocityCountElement(), state)) {
+            return false;
+        }
+        if (lastParent != getVelocityHasNextElement() && !processor.execute(getVelocityHasNextElement(), state)) {
+            return false;
+        }
+        PsiElement loopVariable = header.findChildByType(VtlCompositeElementTypes.LOOP_VARIABLE);
+        if (loopVariable != null && lastParent != loopVariable && !processor.execute(loopVariable, state)) {
+            return false;
+        }
+        return super.processDeclarations(processor, state, lastParent, place);
+    }
 
-	private FixedNameReferenceElement getVelocityCountElement()
-	{
-		if(velocityCountElement == null)
-		{
-			velocityCountElement = new FixedNameReferenceElement("velocityCount", CommonClassNames.JAVA_LANG_INTEGER);
-		}
-		return velocityCountElement;
-	}
+    private FixedNameReferenceElement getVelocityCountElement() {
+        if (velocityCountElement == null) {
+            velocityCountElement = new FixedNameReferenceElement("velocityCount", CommonClassNames.JAVA_LANG_INTEGER);
+        }
+        return velocityCountElement;
+    }
 
-	private FixedNameReferenceElement getVelocityHasNextElement()
-	{
-		if(velocityHasNextElement == null)
-		{
-			velocityHasNextElement = new FixedNameReferenceElement("velocityHasNext", CommonClassNames.JAVA_LANG_BOOLEAN);
-		}
-		return velocityHasNextElement;
-	}
+    private FixedNameReferenceElement getVelocityHasNextElement() {
+        if (velocityHasNextElement == null) {
+            velocityHasNextElement = new FixedNameReferenceElement("velocityHasNext", CommonClassNames.JAVA_LANG_BOOLEAN);
+        }
+        return velocityHasNextElement;
+    }
 
-	public class FixedNameReferenceElement extends RenameableFakePsiElement implements VtlVariable
-	{
-		@NonNls
-		private final String myName;
-		private final String myTypeName;
+    public class FixedNameReferenceElement extends RenameableFakePsiElement implements VtlVariable {
+        private final String myName;
+        private final String myTypeName;
 
-		private FixedNameReferenceElement(@Nonnull String name, @Nonnull String typeName)
-		{
-			super(VtlForeach.this.getContainingFile());
-			myName = name;
-			myTypeName = typeName;
-		}
+        private FixedNameReferenceElement(@Nonnull String name, @Nonnull String typeName) {
+            super(VtlForeach.this.getContainingFile());
+            myName = name;
+            myTypeName = typeName;
+        }
 
-		@Override
-		public consulo.language.psi.PsiElement getParent()
-		{
-			return VtlForeach.this;
-		}
+        @Override
+        public consulo.language.psi.PsiElement getParent() {
+            return VtlForeach.this;
+        }
 
-		@Nonnull
-		@Override
-		public PsiElement getNavigationElement()
-		{
-			return VtlForeach.this;
-		}
+        @Nonnull
+        @Override
+        public PsiElement getNavigationElement() {
+            return VtlForeach.this;
+        }
 
-		@Override
-		public Image getIcon()
-		{
-			return IconDescriptorUpdaters.getIcon(this, 0);
-		}
+        @Override
+        @RequiredReadAction
+        public Image getIcon() {
+            return IconDescriptorUpdaters.getIcon(this, 0);
+        }
 
-		@Nonnull
-		@Override
-		public String getName()
-		{
-			return myName;
-		}
+        @Nonnull
+        @Override
+        @RequiredReadAction
+        public String getName() {
+            return myName;
+        }
 
-		@Override
-		public String getTypeName()
-		{
-			return PsiUtil.getUnqualifiedName(myTypeName);
-		}
+        @Override
+        public String getTypeName() {
+            return PsiUtil.getUnqualifiedName(myTypeName);
+        }
 
-		@Override
-		public PsiElement setName(@Nonnull @NonNls String s) throws IncorrectOperationException
-		{
-			throw new IncorrectOperationException(VelocityBundle.message("operation.not.allowed"));
-		}
+        @Override
+        public PsiElement setName(@Nonnull String s) throws IncorrectOperationException {
+            throw new IncorrectOperationException(VelocityLocalize.operationNotAllowed());
+        }
 
-		public Collection<PsiReference> findReferences(final PsiElement element)
-		{
-			return ReferencesSearch.search(element).findAll();
-		}
+        public Collection<PsiReference> findReferences(PsiElement element) {
+            return ReferencesSearch.search(element).findAll();
+        }
 
-		@Override
-		@Nullable
-		public PsiType getPsiType()
-		{
-			return JavaPsiFacade.getInstance(getProject()).getElementFactory().createTypeByFQClassName(myTypeName, getResolveScope());
-		}
-	}
+        @Override
+        @Nullable
+        public PsiType getPsiType() {
+            return JavaPsiFacade.getInstance(getProject()).getElementFactory().createTypeByFQClassName(myTypeName, getResolveScope());
+        }
+    }
 }

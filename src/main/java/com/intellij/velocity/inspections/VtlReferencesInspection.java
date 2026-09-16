@@ -17,11 +17,11 @@ package com.intellij.velocity.inspections;
 
 import com.intellij.velocity.psi.files.VtlFile;
 import com.intellij.velocity.psi.reference.VtlReferenceExpression;
+import consulo.annotation.access.RequiredReadAction;
 import consulo.annotation.component.ExtensionImpl;
 import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.editor.inspection.ProblemsHolder;
 import consulo.language.psi.PsiElement;
-import consulo.language.psi.PsiFile;
 import consulo.language.psi.ResolveResult;
 import consulo.localize.LocalizeValue;
 import jakarta.annotation.Nonnull;
@@ -34,26 +34,26 @@ import static consulo.language.editor.inspection.ProblemHighlightType.LIKE_UNKNO
  */
 @ExtensionImpl
 public class VtlReferencesInspection extends VtlInspectionBase {
-
     @Override
+    @RequiredReadAction
     protected void registerProblems(PsiElement element, ProblemsHolder holder) {
-        if (!(element instanceof VtlReferenceExpression)) {
+        if (!(element instanceof VtlReferenceExpression ref)) {
             return;
         }
-        final VtlReferenceExpression ref = (VtlReferenceExpression) element;
         if (!ref.isQualifierResolved()) {
             return;
         }
-        final PsiFile file = ref.getContainingFile();
-        if (file instanceof VtlFile && ((VtlFile) file).isIdeTemplateFile()) {
+        if (ref.getContainingFile() instanceof VtlFile vtlFile && vtlFile.isIdeTemplateFile()) {
             return;
         }
-        final ResolveResult[] results = ref.multiResolve(false);
-        final boolean resolvedWithError = results.length > 0 && !results[0].isValidResult();
+        ResolveResult[] results = ref.multiResolve(false);
+        boolean resolvedWithError = results.length > 0 && !results[0].isValidResult();
 
         if (resolvedWithError || ref.resolve() == null) {
-            final String message = ref.getUnresolvedMessage(resolvedWithError);
-            holder.registerProblem(ref, message, resolvedWithError ? GENERIC_ERROR_OR_WARNING : LIKE_UNKNOWN_SYMBOL);
+            holder.newProblem(ref.getUnresolvedMessage(resolvedWithError))
+                .range(ref)
+                .highlightType(resolvedWithError ? GENERIC_ERROR_OR_WARNING : LIKE_UNKNOWN_SYMBOL)
+                .create();
         }
     }
 

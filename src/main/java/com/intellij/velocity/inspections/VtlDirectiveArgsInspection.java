@@ -13,38 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intellij.velocity.inspections;
 
 import com.intellij.java.language.psi.PsiType;
-import com.intellij.velocity.VelocityBundle;
 import com.intellij.velocity.psi.directives.VtlSet;
+import consulo.annotation.access.RequiredReadAction;
 import consulo.annotation.component.ExtensionImpl;
 import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.editor.inspection.ProblemsHolder;
 import consulo.language.psi.PsiElement;
 import consulo.localize.LocalizeValue;
 import jakarta.annotation.Nonnull;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NonNls;
 
-import static com.intellij.velocity.VelocityBundle.message;
 import static consulo.language.editor.inspection.ProblemHighlightType.LIKE_UNUSED_SYMBOL;
 
 @ExtensionImpl
 public class VtlDirectiveArgsInspection extends VtlInspectionBase {
     @Override
+    @RequiredReadAction
     protected void registerProblems(PsiElement element, ProblemsHolder holder) {
-        if (element instanceof VtlSet) {
-            VtlSet vtlSet = (VtlSet) element;
-            String msg = null;
+        if (element instanceof VtlSet vtlSet) {
             if (vtlSet.getAssignedMethodCallExpression() != null) {
-                holder.registerProblem(vtlSet.getFirstChild(), message("assignment.to.method.call"), LIKE_UNUSED_SYMBOL);
+                holder.newProblem(VelocityLocalize.assignmentToMethodCall())
+                    .range(vtlSet.getFirstChild())
+                    .highlightType(LIKE_UNUSED_SYMBOL)
+                    .create();
             }
             else {
                 PsiType assignedType = vtlSet.getAssignedVariableElementType();
                 if (PsiType.VOID.equals(assignedType)) {
-                    holder.registerProblem(vtlSet.getFirstChild(), message("assignment.of.void"), LIKE_UNUSED_SYMBOL);
+                    holder.newProblem(VelocityLocalize.assignmentOfVoid())
+                        .range(vtlSet.getFirstChild())
+                        .highlightType(LIKE_UNUSED_SYMBOL)
+                        .create();
                 }
             }
         }
@@ -57,7 +58,6 @@ public class VtlDirectiveArgsInspection extends VtlInspectionBase {
     }
 
     @Override
-    @NonNls
     @Nonnull
     public String getShortName() {
         return "VtlDirectiveArgsInspection";

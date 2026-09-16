@@ -13,38 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intellij.velocity.psi.parsers;
 
-import static com.intellij.velocity.psi.VtlElementTypes.DIRECTIVE_DEFINE;
-import static com.intellij.velocity.psi.VtlElementTypes.LEFT_PAREN;
-import static com.intellij.velocity.psi.VtlElementTypes.REFERENCE_EXPRESSION;
-import static com.intellij.velocity.psi.VtlElementTypes.RIGHT_PAREN;
-
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.parser.PsiBuilder;
-import com.intellij.velocity.VelocityBundle;
+import consulo.localize.LocalizeValue;
+
+import static com.intellij.velocity.psi.VtlElementTypes.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Alexey Chmutov
- * Date: 27.03.2008
+ * @author Alexey Chmutov
+ * @since 2008-03-27
  */
 public class DefineDirectiveBodyParser extends CompositeBodyParser {
-
     public static final DefineDirectiveBodyParser INSTANCE = new DefineDirectiveBodyParser();
 
-    private DefineDirectiveBodyParser() {}
+    private DefineDirectiveBodyParser() {
+    }
 
+    @Override
     public void parseBody(PsiBuilder builder, PsiBuilder.Marker bodyMarker) {
-        String errorMsg = VelocityBundle.message("defined.variable.expected");
-        if(assertToken(builder, LEFT_PAREN)) {
+        LocalizeValue errorMsg = VelocityLocalize.definedVariableExpected();
+        if (assertToken(builder, LEFT_PAREN)) {
             assertVariable(builder, REFERENCE_EXPRESSION, errorMsg);
             assertToken(builder, RIGHT_PAREN);
-        } else {
+        }
+        else {
             builder.error(errorMsg);
         }
         VtlParser.parseCompositeElements(builder, COMMON_END_DETECTOR);
         finishCompositeWithEnd(builder, bodyMarker, DIRECTIVE_DEFINE);
     }
-
 }

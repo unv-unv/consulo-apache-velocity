@@ -15,53 +15,51 @@
  */
 package com.intellij.velocity.editorActions;
 
-import com.intellij.velocity.VelocityBundle;
 import com.intellij.velocity.psi.VtlLanguage;
 import com.intellij.velocity.psi.VtlVariable;
+import consulo.annotation.access.RequiredReadAction;
 import consulo.annotation.component.ExtensionImpl;
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.Language;
 import consulo.language.findUsage.FindUsagesProvider;
 import consulo.language.psi.PsiElement;
-
 import jakarta.annotation.Nonnull;
 
 /**
  * @author Alexey Chmutov
  */
 @ExtensionImpl
-public class VtlFindUsagesProvider implements FindUsagesProvider
-{
-	public boolean canFindUsagesFor(@Nonnull final consulo.language.psi.PsiElement psiElement)
-	{
-		return psiElement instanceof VtlVariable;
-	}
+public class VtlFindUsagesProvider implements FindUsagesProvider {
+    @Override
+    public boolean canFindUsagesFor(@Nonnull consulo.language.psi.PsiElement psiElement) {
+        return psiElement instanceof VtlVariable;
+    }
 
-	@Nonnull
-	public String getType(@Nonnull final PsiElement element)
-	{
-		return VelocityBundle.message("type.name.variable");
-	}
+    @Nonnull
+    @Override
+    public String getType(@Nonnull PsiElement element) {
+        return VelocityLocalize.typeNameVariable().get();
+    }
 
-	@Nonnull
-	public String getDescriptiveName(@Nonnull final consulo.language.psi.PsiElement element)
-	{
-		return VelocityBundle.message("type.name.variable");
-	}
+    @Nonnull
+    @Override
+    public String getDescriptiveName(@Nonnull consulo.language.psi.PsiElement element) {
+        return VelocityLocalize.typeNameVariable().get();
+    }
 
-	@Nonnull
-	public String getNodeText(@Nonnull final PsiElement element, final boolean useFullName)
-	{
-		if(element instanceof VtlVariable)
-		{
-			return ((VtlVariable) element).getName();
-		}
-		return element.getText();
-	}
+    @Nonnull
+    @Override
+    @RequiredReadAction
+    public String getNodeText(@Nonnull PsiElement element, boolean useFullName) {
+        if (element instanceof VtlVariable variable) {
+            return variable.getName();
+        }
+        return element.getText();
+    }
 
-	@Nonnull
-	@Override
-	public Language getLanguage()
-	{
-		return VtlLanguage.INSTANCE;
-	}
+    @Nonnull
+    @Override
+    public Language getLanguage() {
+        return VtlLanguage.INSTANCE;
+    }
 }

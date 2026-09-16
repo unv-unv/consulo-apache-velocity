@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intellij.velocity.psi.parsers;
 
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.parser.PsiBuilder;
 import consulo.language.ast.IElementType;
-import com.intellij.velocity.VelocityBundle;
 import com.intellij.velocity.psi.VtlCompositeElementType;
 import com.intellij.velocity.psi.VtlCompositeStarterTokenType;
+import consulo.localize.LocalizeValue;
 import consulo.util.dataholder.Key;
 
 import static com.intellij.velocity.psi.VtlElementTypes.*;
@@ -28,18 +28,17 @@ import static com.intellij.velocity.psi.parsers.VtlParser.parseBinaryExpression;
 import static com.intellij.velocity.psi.parsers.VtlParser.parseList;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Alexey Chmutov
- * Date: 27.03.2008
+ * @author Alexey Chmutov
+ * @since 2008-03-27
  */
 public abstract class CompositeBodyParser {
-
     public abstract void parseBody(PsiBuilder builder, PsiBuilder.Marker bodyMarker);
 
     protected static void finishCompositeWithEnd(PsiBuilder builder, PsiBuilder.Marker bodyMarker, VtlCompositeElementType bodyType) {
         if (builder.getTokenType() != SHARP_END) {
-            bodyMarker.error(VelocityBundle.message("token.expected", "#end"));
-        } else {
+            bodyMarker.error(VelocityLocalize.tokenExpected("#end"));
+        }
+        else {
             builder.advanceLexer();
             bodyMarker.done(bodyType);
         }
@@ -47,9 +46,10 @@ public abstract class CompositeBodyParser {
 
     protected static boolean assertToken(PsiBuilder builder, IElementType expected) {
         if (builder.getTokenType() != expected) {
-            builder.error(VelocityBundle.message("token.expected", expected));
+            builder.error(VelocityLocalize.tokenExpected(expected));
             return false;
-        } else {
+        }
+        else {
             builder.advanceLexer();
             return true;
         }
@@ -57,9 +57,10 @@ public abstract class CompositeBodyParser {
 
     protected static boolean assertToken(PsiBuilder builder, IElementType expected, VtlCompositeElementType compositeElementType) {
         if (builder.getTokenType() != expected) {
-            builder.error(VelocityBundle.message("token.expected", expected));
+            builder.error(VelocityLocalize.tokenExpected(expected));
             return false;
-        } else {
+        }
+        else {
             PsiBuilder.Marker start = builder.mark();
             builder.advanceLexer();
             start.done(compositeElementType);
@@ -77,7 +78,7 @@ public abstract class CompositeBodyParser {
 
     protected static boolean parseArgumentList(PsiBuilder builder, boolean requireSeparator) {
         if (!assertToken(builder, LEFT_PAREN)) {
-            builder.error(VelocityBundle.message("argument.list.expected"));
+            builder.error(VelocityLocalize.argumentListExpected());
             return false;
         }
         PsiBuilder.Marker listMarker = builder.mark();
@@ -98,8 +99,8 @@ public abstract class CompositeBodyParser {
         return true;
     }
 
-  static void assertVariable(PsiBuilder builder, VtlCompositeElementType elementType, String errorMsg) {
-        final consulo.language.ast.IElementType variableStarter = builder.getTokenType();
+    static void assertVariable(PsiBuilder builder, VtlCompositeElementType elementType, LocalizeValue errorMsg) {
+        consulo.language.ast.IElementType variableStarter = builder.getTokenType();
         builder.advanceLexer();
         PsiBuilder.Marker variable = builder.mark();
         if (variableStarter != START_REFERENCE && variableStarter != START_REF_FORMAL) {
@@ -113,7 +114,8 @@ public abstract class CompositeBodyParser {
         }
         if (identFound) {
             variable.done(elementType);
-        } else {
+        }
+        else {
             variable.drop();
         }
     }
@@ -144,7 +146,9 @@ public abstract class CompositeBodyParser {
 
     static void incrementForeachCounter(PsiBuilder builder) {
         Integer counter = builder.getUserData(FOREACH_COUNTER);
-        if(counter == null) counter = 0;
+        if (counter == null) {
+            counter = 0;
+        }
         builder.putUserData(FOREACH_COUNTER, counter + 1);
     }
 

@@ -13,44 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intellij.velocity.psi.parsers;
 
-import static com.intellij.velocity.psi.VtlElementTypes.ASSIGN;
-import static com.intellij.velocity.psi.VtlElementTypes.DIRECTIVE_SET;
-import static com.intellij.velocity.psi.VtlElementTypes.LEFT_PAREN;
-import static com.intellij.velocity.psi.VtlElementTypes.RIGHT_PAREN;
-import static com.intellij.velocity.psi.VtlElementTypes.START_REFERENCE;
-import static com.intellij.velocity.psi.VtlElementTypes.START_REF_FORMAL;
-
+import com.intellij.velocity.psi.VtlCompositeStarterTokenType;
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.ast.IElementType;
 import consulo.language.parser.PsiBuilder;
-import com.intellij.velocity.VelocityBundle;
-import com.intellij.velocity.psi.VtlCompositeStarterTokenType;
+
+import static com.intellij.velocity.psi.VtlElementTypes.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Alexey Chmutov
- * Date: 27.03.2008
+ * @author Alexey Chmutov
+ * @since 2008-03-27
  */
 public class SetDirectiveBodyParser extends CompositeBodyParser {
-
     public static final SetDirectiveBodyParser INSTANCE = new SetDirectiveBodyParser();
 
     private SetDirectiveBodyParser() {
     }
 
+    @Override
     public void parseBody(PsiBuilder builder, PsiBuilder.Marker bodyMarker) {
         assertToken(builder, LEFT_PAREN);
         PsiBuilder.Marker variable = builder.mark();
-        final IElementType elementStarter = builder.getTokenType();
+        IElementType elementStarter = builder.getTokenType();
         builder.advanceLexer();
         if (elementStarter == START_REFERENCE || elementStarter == START_REF_FORMAL) {
             variable.drop();
             CompositeBodyParser bodyParser = ((VtlCompositeStarterTokenType) elementStarter).getCompositeBodyParser();
             bodyParser.parseBody(builder, null);
-        } else {
-            variable.error(VelocityBundle.message("token.expected", START_REFERENCE));
+        }
+        else {
+            variable.error(VelocityLocalize.tokenExpected(START_REFERENCE));
         }
 
         assertToken(builder, ASSIGN);

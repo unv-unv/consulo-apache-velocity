@@ -13,34 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intellij.velocity.psi.parsers;
 
+import consulo.apache.velocity.localize.VelocityLocalize;
 import consulo.language.parser.PsiBuilder;
-import com.intellij.velocity.VelocityBundle;
+import consulo.localize.LocalizeValue;
+
 import static com.intellij.velocity.psi.VtlElementTypes.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Alexey Chmutov
- * Date: 27.03.2008
+ * @author Alexey Chmutov
+ * @since 2008-03-27
  */
 public class ForeachDirectiveBodyParser extends CompositeBodyParser {
-
     public static final ForeachDirectiveBodyParser INSTANCE = new ForeachDirectiveBodyParser();
 
-    private ForeachDirectiveBodyParser() {}
+    private ForeachDirectiveBodyParser() {
+    }
 
+    @Override
     public void parseBody(PsiBuilder builder, PsiBuilder.Marker bodyMarker) {
         PsiBuilder.Marker directiveHeader = builder.mark();
         incrementForeachCounter(builder);
-        String errorMsg = VelocityBundle.message("loop.variable.expected");
-        if(assertToken(builder, LEFT_PAREN)) {
+        LocalizeValue errorMsg = VelocityLocalize.loopVariableExpected();
+        if (assertToken(builder, LEFT_PAREN)) {
             assertVariable(builder, LOOP_VARIABLE, errorMsg);
             assertToken(builder, IN);
             VtlParser.parseOperand(builder, false);
             assertToken(builder, RIGHT_PAREN);
-        } else {
+        }
+        else {
             builder.error(errorMsg);
         }
         directiveHeader.done(DIR_HEADER);
@@ -48,5 +50,4 @@ public class ForeachDirectiveBodyParser extends CompositeBodyParser {
         finishCompositeWithEnd(builder, bodyMarker, DIRECTIVE_FOREACH);
         decrementForeachCounter(builder);
     }
-
 }

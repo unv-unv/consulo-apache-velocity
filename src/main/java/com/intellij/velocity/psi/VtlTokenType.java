@@ -18,15 +18,12 @@ package com.intellij.velocity.psi;
 import jakarta.annotation.Nonnull;
 
 import consulo.language.ast.IElementType;
-import org.jetbrains.annotations.NonNls;
 
 /**
  * @author Alexey Chmutov
  */
 public class VtlTokenType extends IElementType {
-
-  public VtlTokenType(@Nonnull @NonNls final String debugName) {
-    super(debugName, VtlLanguage.INSTANCE);
-  }
-
+    public VtlTokenType(@Nonnull String debugName) {
+        super(debugName, VtlLanguage.INSTANCE);
+    }
 }
